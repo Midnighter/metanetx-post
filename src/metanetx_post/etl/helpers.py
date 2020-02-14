@@ -151,20 +151,3 @@ async def fetch_resource(
                 response = await fetcher(identifier, client)
                 wait_time *= 3
     return identifier, response.status_code, response.text
-
-
-def kegg_fetcher(
-    identifier: str, client: httpx.AsyncClient
-) -> Coroutine[Any, Any, httpx.Response]:
-    """
-
-    Parameters
-    ----------
-    identifier
-    client
-
-    Returns
-    -------
-
-    """
-    return client.get(f"{identifier}/mol")

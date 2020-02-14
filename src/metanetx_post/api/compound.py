@@ -20,11 +20,14 @@ import asyncio
 import logging
 
 from cobra_component_models.orm import Compound, CompoundAnnotation, Namespace
-from pandas import read_sql_query, DataFrame
+from pandas import DataFrame, read_sql_query
 from sqlalchemy.orm import sessionmaker
 from tqdm import tqdm
 
-from ..etl import fetch_resources, kegg_fetcher
+from ..etl import fetch_resources, kegg_mol_fetcher
+
+
+__all__ = ("collect_mol_from_kegg",)
 
 
 logger = logging.getLogger(__name__)
@@ -33,7 +36,7 @@ logger = logging.getLogger(__name__)
 Session = sessionmaker()
 
 
-def collect_molecules_from_kegg(session: Session) -> DataFrame:
+def collect_mol_from_kegg(session: Session) -> DataFrame:
     """
     Collect MDL MOL files from KEGG for compounds without InChI.
 
@@ -57,7 +60,9 @@ def collect_molecules_from_kegg(session: Session) -> DataFrame:
     loop = asyncio.get_event_loop()
     try:
         data = loop.run_until_complete(
-            fetch_resources(df["identifier"], "http://rest.kegg.jp/get/", kegg_fetcher)
+            fetch_resources(
+                df["identifier"], "http://rest.kegg.jp/get/", kegg_mol_fetcher
+            )
         )
     finally:
         loop.stop()

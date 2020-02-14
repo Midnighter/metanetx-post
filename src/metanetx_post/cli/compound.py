@@ -22,7 +22,7 @@ import click
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from ..api import collect_molecules_from_kegg
+from ..api import collect_mol_from_kegg
 
 
 logger = logging.getLogger(__name__)
@@ -41,9 +41,10 @@ def compounds():
 @compounds.command()
 @click.help_option("--help", "-h")
 @click.argument("db-uri", metavar="<URI>")
-@click.argument("filename", metavar="<FILENAME>", type=click.Path(dir_okay=False,
-                                                                  writable=True))
-def collect_kegg_inchi(db_uri: str, filename: click.Path):
+@click.argument(
+    "filename", metavar="<FILENAME>", type=click.Path(dir_okay=False, writable=True)
+)
+def collect_kegg_mol(db_uri: str, filename: click.Path):
     """
     Collect MDL MOL files from KEGG for compounds without InChI.
 
@@ -54,7 +55,7 @@ def collect_kegg_inchi(db_uri: str, filename: click.Path):
     """
     engine = create_engine(db_uri)
     session = Session(bind=engine)
-    result = collect_molecules_from_kegg(session)
+    result = collect_mol_from_kegg(session)
     result.to_json(filename, orient="records")
 
 
