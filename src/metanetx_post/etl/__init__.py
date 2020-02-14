@@ -13,15 +13,8 @@
 # limitations under the License.
 
 
-"""Create top level imports."""
+"""Provide high-level ETL functions."""
 
 
-__author__ = "Moritz E. Beber"
-__email__ = "midnighter@posteo.net"
-from metanetx_post._version import get_versions
-
-__version__ = get_versions()["version"]
-del get_versions
-
-
-from metanetx_post.helpers import show_versions
+from .helpers import *
+from .compound import *

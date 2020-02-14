@@ -13,15 +13,11 @@
 # limitations under the License.
 
 
-"""Create top level imports."""
+"""Provide a command line interface (CLI)."""
 
 
-__author__ = "Moritz E. Beber"
-__email__ = "midnighter@posteo.net"
-from metanetx_post._version import get_versions
-
-__version__ = get_versions()["version"]
-del get_versions
+from .main import cli
+from .compound import compounds
 
 
-from metanetx_post.helpers import show_versions
+cli.add_command(compounds)
