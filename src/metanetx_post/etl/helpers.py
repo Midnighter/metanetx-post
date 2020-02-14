@@ -26,7 +26,7 @@ from sqlalchemy.orm import sessionmaker
 from tqdm import tqdm
 
 
-__all__ = ("fetch_resources", "kegg_fetcher")
+__all__ = ("fetch_resources",)
 
 
 logger = logging.getLogger(__name__)
