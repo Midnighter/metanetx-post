@@ -150,7 +150,7 @@ async def fetch_resource(
                     # We are cleared and good to continue.
                     go_event.set()
                     break
-                logger.error(f"{identifier}: Trying again in {wait_time} seconds.")
+                logger.info(f"{identifier}: Trying again in {wait_time} seconds.")
                 await asyncio.sleep(wait_time)
                 response = await fetcher(identifier, client)
                 wait_time *= 2
