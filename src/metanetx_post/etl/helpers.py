@@ -96,6 +96,7 @@ async def fetch_resource(
     fetcher: Callable[[str, httpx.AsyncClient], Coroutine[Any, Any, httpx.Response]],
     go_event: asyncio.Event,
     request_lock: asyncio.Lock,
+    max_attempts: int = 10,
 ) -> Tuple[str, int, Optional[str]]:
     """
     Fetch a single mol description of a compound from KEGG and convert it to InChI.
@@ -111,6 +112,7 @@ async def fetch_resource(
         specific resource.
     go_event : asyncio.Event
     request_lock : asyncio.Lock
+    max_attempts : int, optional
 
     Returns
     -------
@@ -142,12 +144,18 @@ async def fetch_resource(
                     f"Decreasing requests per second to {_REQUESTS_PER_SECOND}."
                 )
             # Introduce exponential backing off.
-            wait_time = 1
-            for _ in range(6):
+            wait_time = 2
+            for attempt in range(max_attempts):
                 if response.status_code != 403:
+                    # We are cleared and good to continue.
+                    go_event.set()
                     break
                 logger.error(f"{identifier}: Trying again in {wait_time} seconds.")
                 await asyncio.sleep(wait_time)
                 response = await fetcher(identifier, client)
-                wait_time *= 3
+                wait_time *= 2
+            if (attempt + 1) >= max_attempts:
+                raise RuntimeError(
+                    "Maximum number of back-off and retry attempts reached. Aborting."
+                )
     return identifier, response.status_code, response.text
