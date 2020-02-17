@@ -13,8 +13,7 @@
 # limitations under the License.
 
 
-"""Provide a high-level API."""
+"""Provide data models."""
 
 
-from .helpers import *
-from .compound import *
+from .bigg import *

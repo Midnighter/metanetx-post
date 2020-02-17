@@ -18,9 +18,12 @@
 
 import logging
 import os
+from pathlib import Path
 
 import click
 import click_log
+
+from ..api import fetch_kegg_info, fetch_bigg_info
 
 
 logger = logging.getLogger()
@@ -47,3 +50,57 @@ elif NUM_PROCESSES > 1:
 def cli():
     """Command line interface to load the MetaNetX content into data models."""
     pass
+
+
+@cli.command()
+@click.help_option("--help", "-h")
+@click.option(
+    "--filename", "-f", type=click.Path(dir_okay=False, writable=True),
+    default="kegg_info.txt",
+    show_default=True,
+    help="The output path for the KEGG information file.",
+)
+def kegg_info(filename: click.Path):
+    """Retrieve the KEGG database version information."""
+    output = Path(filename)
+    with output.open("w") as handle:
+        handle.write(fetch_kegg_info())
+
+
+@cli.command()
+@click.help_option("--help", "-h")
+@click.option(
+    "--filename", "-f", type=click.Path(dir_okay=False, writable=True),
+    default="bigg_info.json",
+    show_default=True,
+    help="The output path for the BiGG information file.",
+)
+def bigg_info(filename: click.Path):
+    """Retrieve the BiGG database version information."""
+    output = Path(filename)
+    model = fetch_bigg_info()
+    with output.open("w") as handle:
+        handle.write(model.json())
+
+
+# TODO: SEED
+
+# TODO: Expasy
+
+# try:
+#     if compress:
+#         handle = gzip.open(local_filename, mode="wb")
+#     else:
+#         handle = local_filename.open("wb")
+#     transferred = 0
+#     # TODO (Moritz): May want to increase the socket timeout here.
+#     async with client.download_stream(filename) as stream:
+#         async for block in stream.iter_by_block():
+#             handle.write(block)
+#             transferred += len(block)
+#     assert transferred == info.size, "Not all bytes were transferred."
+# except IOError as error:
+#     logger.error("Failed to download '%s'.", filename)
+#     logger.debug("", exc_info=error)
+# finally:
+#     handle.close()

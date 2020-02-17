@@ -13,8 +13,26 @@
 # limitations under the License.
 
 
-"""Provide a high-level API."""
+"""Provide BiGG data models."""
 
 
-from .helpers import *
-from .compound import *
+from datetime import datetime
+
+import pydantic
+from pydantic import BaseModel, Field
+
+
+__all__ = ("BiGGVersionModel",)
+
+
+class BiGGVersionModel(BaseModel):
+
+    bigg_models_version: pydantic.constr(regex=r"\d+\.\d+\.\d+") = Field(...)
+    api_version: str = Field(...)
+    last_updated: datetime = Field(...)
+
+
+class BiGGSimpleReaction(BaseModel):
+
+    bigg_id: str = Field(...)
+    name: str = Field(...)
