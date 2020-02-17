@@ -61,7 +61,7 @@ def collect_mol_from_kegg(session: Session) -> DataFrame:
     try:
         data = loop.run_until_complete(
             fetch_resources(
-                df["identifier"], "http://rest.kegg.jp/get/", kegg_mol_fetcher
+                df["identifier"].unique(), "http://rest.kegg.jp/get/", kegg_mol_fetcher
             )
         )
     finally:
