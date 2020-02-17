@@ -17,6 +17,7 @@
 
 
 from datetime import datetime
+from typing import List
 
 import pydantic
 from pydantic import BaseModel, Field
@@ -26,6 +27,7 @@ __all__ = ("BiGGVersionModel",)
 
 
 class BiGGVersionModel(BaseModel):
+    """Define a data model that represents the BiGG database version."""
 
     bigg_models_version: pydantic.constr(regex=r"\d+\.\d+\.\d+") = Field(...)
     api_version: str = Field(...)
@@ -33,6 +35,14 @@ class BiGGVersionModel(BaseModel):
 
 
 class BiGGSimpleReaction(BaseModel):
+    """Define a data model for a simple BiGG reaction with a name."""
 
     bigg_id: str = Field(...)
     name: str = Field(...)
+
+
+class BiGGUniversalReactions(BaseModel):
+    """Define a data model for universal reaction query results."""
+
+    results: List[BiGGSimpleReaction] = Field(...)
+    results_count: int = Field(...)
