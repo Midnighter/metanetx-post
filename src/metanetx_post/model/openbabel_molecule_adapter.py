@@ -54,8 +54,9 @@ class OpenBabelMoleculeAdapter(AbstractMoleculeAdapter):
         try:
             return OpenBabelMoleculeAdapter(molecule=pybel.readstring("mol", mol))
         except IOError as error:
-            logger.error("Failed to generate an Open Babel molecule from MDL MOL "
-                         "block.")
+            logger.error(
+                "Failed to generate an Open Babel molecule from MDL MOL block."
+            )
             logger.debug(mol, exc_info=error)
             return None
 

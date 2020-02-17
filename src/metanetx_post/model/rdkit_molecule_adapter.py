@@ -21,9 +21,7 @@ from __future__ import annotations
 from typing import Optional
 
 import rdkit.Chem as chem
-from rdkit.Chem import Descriptors
-from rdkit.Chem import rdMolDescriptors
-from rdkit.Chem import rdmolops
+from rdkit.Chem import Descriptors, rdMolDescriptors, rdmolops
 
 from .abstract_molecule_adapter import AbstractMoleculeAdapter
 

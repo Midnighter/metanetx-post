@@ -23,7 +23,7 @@ from pathlib import Path
 import click
 import click_log
 
-from ..api import fetch_kegg_info, fetch_bigg_info
+from ..api import fetch_bigg_info, fetch_kegg_info
 
 
 logger = logging.getLogger()
@@ -55,7 +55,9 @@ def cli():
 @cli.command()
 @click.help_option("--help", "-h")
 @click.option(
-    "--filename", "-f", type=click.Path(dir_okay=False, writable=True),
+    "--filename",
+    "-f",
+    type=click.Path(dir_okay=False, writable=True),
     default="kegg_info.txt",
     show_default=True,
     help="The output path for the KEGG information file.",
@@ -70,7 +72,9 @@ def kegg_info(filename: click.Path):
 @cli.command()
 @click.help_option("--help", "-h")
 @click.option(
-    "--filename", "-f", type=click.Path(dir_okay=False, writable=True),
+    "--filename",
+    "-f",
+    type=click.Path(dir_okay=False, writable=True),
     default="bigg_info.json",
     show_default=True,
     help="The output path for the BiGG information file.",
