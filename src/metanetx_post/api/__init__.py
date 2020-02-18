@@ -18,3 +18,4 @@
 
 from .helpers import *
 from .compound import *
+from .reaction import *

@@ -18,6 +18,8 @@
 
 from .main import cli
 from .compound import compounds
+from .reaction import reactions
 
 
 cli.add_command(compounds)
+cli.add_command(reactions)

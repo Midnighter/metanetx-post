@@ -17,13 +17,13 @@
 
 
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 import pydantic
 from pydantic import BaseModel, Field
 
 
-__all__ = ("BiGGVersionModel",)
+__all__ = ("BiGGSimpleReaction", "BiGGVersionModel", "BiGGUniversalReactionResult")
 
 
 class BiGGVersionModel(BaseModel):
@@ -38,10 +38,10 @@ class BiGGSimpleReaction(BaseModel):
     """Define a data model for a simple BiGG reaction with a name."""
 
     bigg_id: str = Field(...)
-    name: str = Field(...)
+    name: Optional[str] = Field(None)
 
 
-class BiGGUniversalReactions(BaseModel):
+class BiGGUniversalReactionResult(BaseModel):
     """Define a data model for universal reaction query results."""
 
     results: List[BiGGSimpleReaction] = Field(...)

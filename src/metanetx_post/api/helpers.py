@@ -44,4 +44,6 @@ def fetch_bigg_info() -> BiGGVersionModel:
     """Fetch the BiGG database version information."""
     response = httpx.get("http://bigg.ucsd.edu/api/v2/database_version")
     response.raise_for_status()
-    return BiGGVersionModel(**response.json())
+    # We use the response's `text` attribute (rather than the `raw` attribute) so that
+    # the HTTP response body is already correctly encoded.
+    return BiGGVersionModel.parse_raw(response.text)
