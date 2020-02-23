@@ -13,21 +13,7 @@
 # limitations under the License.
 
 
-"""Provide a reaction command line interface (CLI)."""
+"""Provide reaction ETL functions."""
 
 
-import click
-
-from .bigg import bigg
-from .expasy import expasy
-
-
-@click.group()
-@click.help_option("--help", "-h")
-def reactions():
-    """Subcommands for processing reactions."""
-    pass
-
-
-reactions.add_command(bigg)
-reactions.add_command(expasy)
+from .expasy import *
