@@ -85,6 +85,8 @@ def transform(response: str) -> Dict[str, str]:
 
     Raises
     ------
+    pydantic.ValidationError
+        In case the JSON response data has an unexpected format.
     AssertionError
         If the response data is inconsistent.
 
