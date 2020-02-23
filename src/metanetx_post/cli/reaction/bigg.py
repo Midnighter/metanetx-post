@@ -25,6 +25,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from ...api.reaction import bigg as bigg_api
+from ..helpers import JSON_SEPARATORS
 
 
 logger = logging.getLogger(__name__)
@@ -82,7 +83,7 @@ def transform(response: click.Path, filename: click.Path):
     with Path(response).open() as handle:
         id2name = bigg_api.transform(handle.read())
     with Path(filename).open("w") as handle:
-        json.dump(id2name, handle, separators=(",", ":"))
+        json.dump(id2name, handle, separators=JSON_SEPARATORS)
 
 
 @bigg.command()
