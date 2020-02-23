@@ -13,9 +13,19 @@
 # limitations under the License.
 
 
-"""Provide a high-level API."""
+"""Provide a reaction command line interface (CLI)."""
 
 
-from .reaction import *
-from .helpers import *
-from .compound import *
+import click
+
+from .bigg import bigg
+
+
+@click.group()
+@click.help_option("--help", "-h")
+def reactions():
+    """Subcommands for processing reactions."""
+    pass
+
+
+reactions.add_command(bigg)
