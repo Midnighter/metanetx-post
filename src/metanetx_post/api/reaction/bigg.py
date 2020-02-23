@@ -17,8 +17,7 @@
 
 
 import logging
-from pathlib import Path
-from typing import Dict, Set
+from typing import Dict
 
 import httpx
 import pandas as pd
