@@ -21,13 +21,13 @@ from pathlib import Path
 from typing import Dict, Set
 
 import httpx
+import pandas as pd
 from cobra_component_models.orm import (
     Namespace,
     Reaction,
     ReactionAnnotation,
     ReactionName,
 )
-import pandas as pd
 from sqlalchemy.orm import sessionmaker
 from tqdm import tqdm
 
@@ -43,9 +43,7 @@ logger = logging.getLogger(__name__)
 Session = sessionmaker()
 
 
-def extract(
-    url: str = "http://bigg.ucsd.edu/api/v2/universal/reactions",
-) -> str:
+def extract(url: str = "http://bigg.ucsd.edu/api/v2/universal/reactions",) -> str:
     """
     Fetch all BiGG universal reactions as JSON.
 
@@ -97,9 +95,7 @@ def transform(response: str) -> Dict[str, str]:
     return {r.bigg_id: r.name for r in data.results if r.name}
 
 
-def load(
-    session: Session, id2name: Dict[str, str], batch_size: int = 1000,
-) -> None:
+def load(session: Session, id2name: Dict[str, str], batch_size: int = 1000,) -> None:
     """
     Return a BiGG universal reactions identifier to name mapping.
 
@@ -107,13 +103,10 @@ def load(
     ----------
     session : sqlalchemy.orm.session.Session
         An active session in order to communicate with a SQL database.
-    filename : Path
-        The BiGG universal reactions result.
-
-    Returns
-    -------
-    dict
-        A map from BiGG reaction identifiers to their names.
+    id2name : dict
+        A map of BiGG reaction identifiers to names.
+    batch_size : int, optional
+        The size of batches to proces the data in.
 
     """
     # Fetch all reactions from the database that have BiGG identifiers.
@@ -127,19 +120,25 @@ def load(
         .join(Namespace)
         .filter(Namespace.id == bigg_ns.id)
     )
-    df = pd.read_sql_query(query, session.bind)
-    with tqdm(total=len(df), desc="BiGG Reaction") as pbar:
-        for index in range(0, len(df), batch_size):
+    df = pd.read_sql_query(query.statement, session.bind)
+    # Only unique names per reaction and namespace are allowed. Thus we group the
+    # data by reaction index so that we can later make the names unique.
+    grouped = df.groupby("id", as_index=False, sort=False)
+    reaction_ids = df["id"].unique()
+    with tqdm(total=len(reaction_ids), desc="BiGG Reaction") as pbar:
+        for index in range(0, len(reaction_ids), batch_size):
             mappings = []
-            for row in df.iloc[index : index + batch_size].itertuples(index=False):
-                name = id2name.get(row.identifier, None)
-                if name is not None:
-                    mappings.append(
-                        {"reaction_id": row.id,
-                         "namespace_id": bigg_ns.id,
-                         "name": name,
-                         }
-                    )
+            batch = reaction_ids[index : index + batch_size]
+            for rxn_id in batch:
+                sub = grouped.get_group(rxn_id)
+                # Create unique names per reaction.
+                names = {n for i in sub["identifier"] if (n := id2name.get(i, None))}
+                # Apparently, `numpy.int` ends up as a BLOB in the database. We
+                # convert to native `int` here.
+                mappings.extend(
+                    {"reaction_id": int(rxn_id), "namespace_id": bigg_ns.id, "name": n,}
+                    for n in names
+                )
             session.bulk_insert_mappings(ReactionName, mappings)
             session.commit()
-            pbar.update(len(mappings))
+            pbar.update(len(batch))

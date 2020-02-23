@@ -24,7 +24,7 @@ import click
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from ...api.reaction import bigg
+from ...api.reaction import bigg as bigg_api
 
 
 logger = logging.getLogger(__name__)
@@ -36,7 +36,7 @@ Session = sessionmaker()
 @click.group()
 @click.help_option("--help", "-h")
 def bigg():
-    """Subcommand for processing bigg."""
+    """Subcommand for processing BiGG information."""
     pass
 
 
@@ -51,9 +51,10 @@ def bigg():
     help="The output path for the BiGG universal bigg JSON response.",
 )
 def extract(filename: click.Path):
-    """Fetch all BiGG universal bigg."""
+    """Fetch all BiGG universal reactions."""
+    logger.info("Downloading BiGG universal reactions.")
     with Path(filename).open("w") as handle:
-        handle.write(bigg.extract())
+        handle.write(bigg_api.extract())
 
 
 @bigg.command()
@@ -77,8 +78,9 @@ def transform(response: click.Path, filename: click.Path):
     RESPONSE is the JSON response containing BiGG universal reactions.
 
     """
+    logger.info("Generating BiGG universal reactions identifier to name mapping.")
     with Path(response).open() as handle:
-        id2name = bigg.transform(handle.read())
+        id2name = bigg_api.transform(handle.read())
     with Path(filename).open("w") as handle:
         json.dump(id2name, handle, separators=(",", ":"))
 
@@ -102,7 +104,8 @@ def load(db_uri: str, filename: click.Path):
     session = Session(bind=engine)
     with Path(filename).open() as handle:
         id2name = json.load(handle)
+    logger.info("Adding BiGG universal reaction names to database.")
     try:
-        bigg.load(session, id2name)
+        bigg_api.load(session, id2name)
     finally:
         session.close()
