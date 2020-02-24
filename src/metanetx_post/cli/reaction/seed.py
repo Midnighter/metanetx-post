@@ -83,7 +83,9 @@ def transform(response: click.Path, filename: click.Path):
     with Path(response).open() as handle:
         id2name = seed_api.transform(handle.read())
     with Path(filename).open("w") as handle:
-        json.dump(id2name, handle, default=convert2json_type, separators=JSON_SEPARATORS)
+        json.dump(
+            id2name, handle, default=convert2json_type, separators=JSON_SEPARATORS
+        )
 
 
 @seed.command()
