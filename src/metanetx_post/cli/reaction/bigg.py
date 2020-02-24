@@ -98,7 +98,7 @@ def load(db_uri: str, filename: click.Path):
 
     \b
     URI is a string interpreted as an rfc1738 compatible database URI.
-    FILENAME the BiGG reaction identifier to name mapping JSON file.
+    FILENAME is the BiGG reaction identifier to name mapping JSON file.
 
     """
     engine = create_engine(db_uri)
