@@ -13,8 +13,26 @@
 # limitations under the License.
 
 
-"""Provide data models."""
+"""Provide SEED data models."""
 
 
-from .bigg import *
-from .seed import *
+from typing import List, Optional
+
+from pydantic import BaseModel
+
+
+__all__ = ("SEEDReactionsModel", "SEEDReactionModel")
+
+
+class SEEDReactionModel(BaseModel):
+    """Define a data model for SEED reactions."""
+
+    id: str
+    name: str
+    aliases: Optional[List[str]] = None
+
+
+class SEEDReactionsModel(BaseModel):
+    """Define a data model for SEED reactions."""
+
+    __root__: List[SEEDReactionModel]
