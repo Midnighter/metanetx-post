@@ -41,7 +41,7 @@ async def fetch_resources(
     identifiers: Collection[str],
     url: str,
     fetcher: Callable[[str, httpx.AsyncClient], Coroutine[Any, Any, httpx.Response]],
-    requests_per_second: int = 10,
+    requests_per_second: int = 9,
 ) -> DataFrame:
     """
 
