@@ -98,7 +98,7 @@ def transform(response: str) -> Dict[str, str]:
 
 def load(session: Session, id2name: Dict[str, str], batch_size: int = 1000,) -> None:
     """
-    Return a BiGG universal reactions identifier to name mapping.
+    Load BiGG universal reaction names into a database.
 
     Parameters
     ----------
@@ -126,7 +126,7 @@ def load(session: Session, id2name: Dict[str, str], batch_size: int = 1000,) -> 
     # data by reaction index so that we can later make the names unique.
     grouped = df.groupby("id", as_index=False, sort=False)
     reaction_ids = df["id"].unique()
-    with tqdm(total=len(reaction_ids), desc="BiGG Reaction") as pbar:
+    with tqdm(total=len(reaction_ids), desc="Reaction") as pbar:
         for index in range(0, len(reaction_ids), batch_size):
             mappings = []
             batch = reaction_ids[index : index + batch_size]
