@@ -18,3 +18,4 @@
 
 from .bigg import *
 from .expasy import *
+from .seed import *

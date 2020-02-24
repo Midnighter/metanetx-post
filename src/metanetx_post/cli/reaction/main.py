@@ -20,6 +20,7 @@ import click
 
 from .bigg import bigg
 from .expasy import expasy
+from .seed import seed
 
 
 @click.group()
@@ -31,3 +32,4 @@ def reactions():
 
 reactions.add_command(bigg)
 reactions.add_command(expasy)
+reactions.add_command(seed)
