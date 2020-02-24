@@ -83,17 +83,18 @@ def transform(filename: Path,) -> Tuple[Dict[str, Set[str]], Dict[str, str]]:
 
 def load(
     session: Session,
-    id2name: Dict[str, Collection[str]],
+    id2names: Dict[str, Collection[str]],
     obsoletes: Dict[str, str],
     batch_size: int = 1000,
 ) -> None:
     """
+    Load EC-code names into a database.
 
     Parameters
     ----------
     session : sqlalchemy.orm.session.Session
         An active session in order to communicate with a SQL database.
-    id2name : dict
+    id2names : dict
         A map of EC-codes to names.
     obsoletes : dict
         A map of obsolete EC-codes to their replacements.
@@ -117,7 +118,7 @@ def load(
     # data by reaction index so that we can later make the names unique.
     grouped = df.groupby("id", as_index=False, sort=False)
     reaction_ids = df["id"].unique()
-    with tqdm(total=len(reaction_ids), desc="EC-code") as pbar:
+    with tqdm(total=len(reaction_ids), desc="Reaction") as pbar:
         for index in range(0, len(reaction_ids), batch_size):
             mappings = []
             batch = reaction_ids[index : index + batch_size]
@@ -128,7 +129,7 @@ def load(
                 # Create unique names per reaction.
                 names = set()
                 for code in ec_codes:
-                    if labels := id2name.get(code, None):
+                    if labels := id2names.get(code, None):
                         names.update(labels)
                 # Apparently, `numpy.int` ends up as a BLOB in the database. We
                 # convert to native `int` here.
