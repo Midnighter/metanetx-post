@@ -13,25 +13,26 @@
 # limitations under the License.
 
 
-"""Provide a reaction command line interface (CLI)."""
+"""Provide KEGG data models."""
 
 
-import click
+from typing import List
 
-from .bigg import bigg
-from .expasy import expasy
-from .kegg import kegg
-from .seed import seed
+from pydantic import BaseModel
 
 
-@click.group()
-@click.help_option("--help", "-h")
-def reactions():
-    """Subcommands for processing reactions."""
-    pass
+__all__ = ("KEGGResponsesModel", "KEGGResponseModel")
 
 
-reactions.add_command(bigg)
-reactions.add_command(expasy)
-reactions.add_command(kegg)
-reactions.add_command(seed)
+class KEGGResponseModel(BaseModel):
+    """Define a data model for a KEGG REST API response."""
+
+    identifier: str
+    status_code: int
+    response: str
+
+
+class KEGGResponsesModel(BaseModel):
+    """Define a data model for a KEGG REST API response collection."""
+
+    __root__: List[KEGGResponseModel]

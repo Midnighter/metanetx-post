@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-"""Define the CLI for enriching SEED reaction information."""
+"""Define the CLI for enriching KEGG reaction information."""
 
 
 import json
@@ -24,7 +24,7 @@ import click
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from ...api.reaction import seed as seed_api
+from ...api.reaction import kegg as kegg_api
 from ..helpers import JSON_SEPARATORS, convert2json_type
 
 
@@ -36,29 +36,32 @@ Session = sessionmaker()
 
 @click.group()
 @click.help_option("--help", "-h")
-def seed():
-    """Subcommands for processing SEED information."""
+def kegg():
+    """Subcommands for processing KEGG information."""
     pass
 
 
-@seed.command()
+@kegg.command()
 @click.help_option("--help", "-h")
+@click.argument("db-uri", metavar="<URI>")
 @click.option(
     "--filename",
     "-f",
-    type=click.Path(dir_okay=False, writable=True),
-    default="seed_reactions.json",
+    type=click.Path(dir_okay=False, writable=True, exists=False),
+    default="kegg_reactions.json",
     show_default=True,
-    help="The output path for the SEED reactions JSON response.",
+    help="The output path for the KEGG reactions JSON response.",
 )
-def extract(filename: click.Path):
-    """Fetch all SEED reactions."""
-    logger.info("Downloading SEED reactions.")
-    with Path(filename).open("w") as handle:
-        handle.write(seed_api.extract())
+def extract(db_uri: str, filename: click.Path):
+    """Fetch all KEGG reaction descriptions."""
+    engine = create_engine(db_uri)
+    session = Session(bind=engine)
+    logger.info("Downloading KEGG reactions.")
+    result = kegg_api.extract(session)
+    result.to_json(filename, orient="records")
 
 
-@seed.command()
+@kegg.command()
 @click.help_option("--help", "-h")
 @click.argument(
     "response", metavar="<RESPONSE>", type=click.Path(dir_okay=False, exists=True)
@@ -66,29 +69,29 @@ def extract(filename: click.Path):
 @click.option(
     "--filename",
     "-f",
-    type=click.Path(dir_okay=False, writable=True),
-    default="seed_reaction_names.json",
+    type=click.Path(dir_okay=False, writable=True, exists=False),
+    default="kegg_reaction_names.json",
     show_default=True,
-    help="The output path for the SEED reaction identifier to name JSON file.",
+    help="The output path for the KEGG reaction identifier to name JSON file.",
 )
 def transform(response: click.Path, filename: click.Path):
     """
-    Generate a mapping of SEED reaction identifiers to names.
+    Generate a mapping of KEGG reaction identifiers to names.
 
     \b
-    RESPONSE is the JSON response containing SEED reactions.
+    RESPONSE is the JSON response containing KEGG universal expasy.
 
     """
-    logger.info("Generating SEED reactions identifier to name mapping.")
+    logger.info("Generating KEGG reactions identifier to names mapping.")
     with Path(response).open() as handle:
-        id2name = seed_api.transform(handle.read())
+        id2names = kegg_api.transform(handle.read())
     with Path(filename).open("w") as handle:
         json.dump(
-            id2name, handle, default=convert2json_type, separators=JSON_SEPARATORS
+            id2names, handle, default=convert2json_type, separators=JSON_SEPARATORS
         )
 
 
-@seed.command()
+@kegg.command()
 @click.help_option("--help", "-h")
 @click.argument("db-uri", metavar="<URI>")
 @click.argument(
@@ -96,19 +99,19 @@ def transform(response: click.Path, filename: click.Path):
 )
 def load(db_uri: str, filename: click.Path):
     """
-    Load SEED reaction names into a database.
+    Load KEGG reaction names into a database.
 
     \b
     URI is a string interpreted as an rfc1738 compatible database URI.
-    FILENAME is the SEED reaction identifier to names mapping JSON file.
+    FILENAME is the KEGG reaction identifier to name mapping JSON file.
 
     """
     engine = create_engine(db_uri)
     session = Session(bind=engine)
     with Path(filename).open() as handle:
-        id2names = json.load(handle)
-    logger.info("Adding SEED reaction names to database.")
+        id2name = json.load(handle)
+    logger.info("Adding KEGG reaction names to database.")
     try:
-        seed_api.load(session, id2names)
+        kegg_api.load(session, id2name)
     finally:
         session.close()

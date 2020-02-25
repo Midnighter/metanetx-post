@@ -17,4 +17,5 @@
 
 
 from .bigg import *
+from .kegg import *
 from .seed import *

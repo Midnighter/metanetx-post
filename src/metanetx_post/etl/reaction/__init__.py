@@ -17,3 +17,4 @@
 
 
 from .expasy import *
+from .kegg import *

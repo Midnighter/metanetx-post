@@ -67,10 +67,12 @@ async def fetch_resources(
     # coordinated and the number of requests per second throttled correctly.
     request_lock = asyncio.Lock()
     async with httpx.AsyncClient(
-        base_url=url, pool_limits=httpx.PoolLimits(hard_limit=_REQUESTS_PER_SECOND),
+        base_url=url,
+        pool_limits=httpx.PoolLimits(hard_limit=_REQUESTS_PER_SECOND),
+        timeout=httpx.Timeout(pool_timeout=None),
     ) as client:
         for identifier in tqdm(
-            identifiers, total=len(identifiers), desc="Submit " "Request"
+            identifiers, total=len(identifiers), desc="Submit Request"
         ):
             # If the go event is cleared, i.e., we need to back off, this will halt
             # submitting new requests until we are good to go again.
