@@ -32,7 +32,7 @@ from cobra_component_models.orm import (
 from sqlalchemy.orm import sessionmaker
 from tqdm import tqdm
 
-from ...etl import KEGGReactionNameParser, fetch_resources, reaction_fetcher
+from ...etl import KEGGReactionNameParser, fetch_kegg_resources, reaction_fetcher
 from ...model import KEGGResponsesModel
 
 
@@ -54,12 +54,7 @@ def extract(session: Session, url: str = "http://rest.kegg.jp/get/",) -> pd.Data
     session : sqlalchemy.orm.session.Session
         An active session in order to communicate with a SQL database.
     url : str, optional
-        The URL to query for the BiGG universal reactions.
-
-    Raises
-    ------
-    httpx.HTTPError
-        In case the HTTP response status code was in the 400 or 500 range.
+        The URL to query for the KEGG reactions.
 
     """
     # Fetch all reactions from the database that have KEGG identifiers.
@@ -71,14 +66,9 @@ def extract(session: Session, url: str = "http://rest.kegg.jp/get/",) -> pd.Data
         .filter(Namespace.prefix == "kegg.reaction")
     )
     df = pd.read_sql_query(query.statement, session.bind)
-    loop = asyncio.get_event_loop()
-    try:
-        data = loop.run_until_complete(
-            fetch_resources(df["identifier"].unique(), url, reaction_fetcher)
-        )
-    finally:
-        loop.stop()
-        loop.close()
+    data = asyncio.run(
+        fetch_kegg_resources(df["identifier"].unique(), reaction_fetcher, url)
+    )
     return data
 
 

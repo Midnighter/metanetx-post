@@ -16,6 +16,6 @@
 """Provide high-level ETL functions."""
 
 
-from .helpers import *
+from .kegg_helpers import *
 from .compound import *
 from .reaction import *
