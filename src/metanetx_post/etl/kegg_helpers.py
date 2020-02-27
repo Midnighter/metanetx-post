@@ -19,6 +19,7 @@
 import asyncio
 import logging
 import time
+from math import ceil
 from typing import Any, Callable, Collection, Coroutine, Tuple
 
 import httpx
@@ -102,8 +103,9 @@ async def fetch_kegg_resources(
                     )
                 )
                 delta = time.perf_counter() - start
-                if delta < 1.0:
-                    await asyncio.sleep(1.0 - delta)
+                # We keep our number of requests per second conservative by always
+                # waiting until the next second window.
+                await asyncio.sleep(ceil(delta) - delta)
                 pbar.update(len(tasks))
     return DataFrame(data=results, columns=["identifier", "status_code", "response"])
 
