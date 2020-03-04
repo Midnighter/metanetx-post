@@ -17,14 +17,15 @@
 
 
 import logging
+from collections import Counter
 
 import httpx
 from sqlalchemy.orm import sessionmaker
 
-from ..model import BiGGVersionModel
+from ..model import BiGGVersionModel, KEGGResponsesModel
 
 
-__all__ = ("fetch_kegg_info", "fetch_bigg_info")
+__all__ = ("fetch_kegg_info", "fetch_bigg_info", "summarize_responses")
 
 
 logger = logging.getLogger(__name__)
@@ -47,3 +48,10 @@ def fetch_bigg_info() -> BiGGVersionModel:
     # We use the response's `text` attribute (rather than the `raw` attribute) so that
     # the HTTP response body is already correctly encoded.
     return BiGGVersionModel.parse_raw(response.text)
+
+
+def summarize_responses(responses: KEGGResponsesModel) -> None:
+    logger.info("HTTP responses status code summary:")
+    summary = Counter(response.status_code for response in responses.__root__)
+    for code, num in summary.items():
+        logger.info(f"{code}: {num} ({num / len(responses.__root__):.2%})")

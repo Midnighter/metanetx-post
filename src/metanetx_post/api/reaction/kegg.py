@@ -18,8 +18,6 @@
 
 import asyncio
 import logging
-from collections import Counter
-from pathlib import Path
 from typing import Collection, Dict, Set
 
 import pandas as pd
@@ -34,6 +32,7 @@ from tqdm import tqdm
 
 from ...etl import KEGGReactionNameParser, fetch_kegg_resources, reaction_fetcher
 from ...model import KEGGResponsesModel
+from ..helpers import summarize_responses
 
 
 __all__ = ()
@@ -47,7 +46,7 @@ Session = sessionmaker()
 
 def extract(session: Session, url: str = "http://rest.kegg.jp/get/",) -> pd.DataFrame:
     """
-    Fetch all BiGG universal reactions as JSON.
+    Fetch all KEGG reaction descriptions.
 
     Parameters
     ----------
@@ -66,10 +65,9 @@ def extract(session: Session, url: str = "http://rest.kegg.jp/get/",) -> pd.Data
         .filter(Namespace.prefix == "kegg.reaction")
     )
     df = pd.read_sql_query(query.statement, session.bind)
-    data = asyncio.run(
+    return asyncio.run(
         fetch_kegg_resources(df["identifier"].unique(), reaction_fetcher, url)
     )
-    return data
 
 
 def transform(response: str) -> Dict[str, Set[str]]:
@@ -90,19 +88,15 @@ def transform(response: str) -> Dict[str, Set[str]]:
     ------
     pydantic.ValidationError
         In case the JSON response data has an unexpected format.
-    AssertionError
-        If the response data is inconsistent.
 
     """
     data = KEGGResponsesModel.parse_raw(response)
-    logger.info("HTTP Response status code summary:")
-    summary = Counter(response.status_code for response in data.__root__)
-    for code, num in summary.items():
-        logger.info(f"{code}: {num} ({num / len(data.__root__):.2%})")
+    summarize_responses(data)
     return {
         response.identifier: names
         for response in tqdm(data.__root__, desc="Reaction")
-        if (names := KEGGReactionNameParser.parse(response.response))
+        if response.status_code == 200
+        and (names := KEGGReactionNameParser.parse(response.response))
     }
 
 
