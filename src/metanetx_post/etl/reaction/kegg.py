@@ -29,14 +29,19 @@ def reaction_fetcher(
     identifier: str, client: httpx.AsyncClient
 ) -> Coroutine[Any, Any, httpx.Response]:
     """
+    Prepare an asynchronous HTTP call to retrieve a KEGG reaction description.
 
     Parameters
     ----------
-    identifier
-    client
+    identifier : str
+        The KEGG reaction identifier.
+    client : httpx.AsyncClient
+        An httpx asynchronous client with a `base_url` set.
 
     Returns
     -------
+    coroutine
+        A `client.get` call that can be awaited by the caller of this function.
 
     """
     return client.get(identifier)

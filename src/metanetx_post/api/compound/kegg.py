@@ -1,0 +1,203 @@
+# Copyright (c) 2020, Moritz E. Beber.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+"""Populate compound information."""
+
+
+import asyncio
+import logging
+from collections import Counter
+from typing import Dict, Type
+
+from cobra_component_models.orm import (
+    BiologyQualifier,
+    Compound,
+    CompoundAnnotation,
+    Namespace,
+)
+from cobra_component_models.serializer import CompoundSerializer
+from pandas import DataFrame, read_sql_query
+from sqlalchemy.orm import selectinload, sessionmaker
+from tqdm import tqdm
+
+from ...etl import fetch_kegg_resources, kegg_mol_fetcher
+from ...model import (
+    AbstractMoleculeAdapter,
+    InChIConflict,
+    InChIConflictReport,
+    KEGGResponsesModel,
+)
+from ..helpers import summarize_responses
+
+
+__all__ = ("extract", "transform", "load")
+
+
+logger = logging.getLogger(__name__)
+
+
+Session = sessionmaker()
+
+
+def extract(session: Session, url: str = "http://rest.kegg.jp/get/",) -> DataFrame:
+    """
+    Fetch MDL MOL blocks from KEGG for compounds without InChI.
+
+    Parameters
+    ----------
+    session : sqlalchemy.orm.session.Session
+        An active session in order to communicate with a SQL database.
+    url : str, optional
+        The URL to query for the KEGG compounds.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A data frame with two columns, the compound index and its corresponding KEGG
+        identifier.
+
+    """
+    # Fetch all compounds from the database that have KEGG identifiers and are
+    # missing their InChI string.
+    query = (
+        session.query(Compound.id, CompoundAnnotation.identifier)
+        .select_from(Compound)
+        .join(CompoundAnnotation)
+        .join(Namespace)
+        .filter(Namespace.prefix.like("kegg%"))
+        .filter(Compound.inchi.is_(None))
+    )
+    df = read_sql_query(query.statement, session.bind)
+    return asyncio.run(
+        fetch_kegg_resources(df["identifier"].unique(), kegg_mol_fetcher, url)
+    )
+
+
+def transform(
+    response: str, molecule_adapter: Type[AbstractMoleculeAdapter]
+) -> Dict[str, str]:
+    """
+    Transform the KEGG MDL MOL blocks to compound information.
+
+    Parameters
+    ----------
+    response : str
+        The JSON collection of KEGG API responses containing reaction descriptions.
+    molecule_adapter : AbstractMoleculeAdapter
+
+    Returns
+    -------
+    dict
+        A map of KEGG reaction identifiers to names.
+
+    Raises
+    ------
+    pydantic.ValidationError
+        In case the JSON response data has an unexpected format.
+
+    """
+    data = KEGGResponsesModel.parse_raw(response)
+    summarize_responses(data)
+    return {
+        response.identifier: inchi
+        for response in tqdm(data.__root__, desc="MOL Block")
+        if response.status_code == 200
+        and (molecule := molecule_adapter.from_mol_block(response.response))
+        and (inchi := molecule.get_inchi())
+    }
+
+
+def load(
+    session: Session, id2inchi: Dict[str, str], batch_size: int = 1000,
+) -> InChIConflictReport:
+    """"""
+    # Fetch all compounds from the database that have KEGG identifiers and are
+    # missing their InChI string.
+    query = (
+        session.query(Compound.id, CompoundAnnotation.identifier)
+        .select_from(Compound)
+        .join(CompoundAnnotation)
+        .join(Namespace)
+        .filter(Namespace.prefix.like("kegg%"))
+        .filter(Compound.inchi.is_(None))
+    )
+    df = read_sql_query(query.statement, session.bind)
+    # The resulting data frame will contain duplicate compound primary keys.
+    primary_keys = df["id"].unique()
+    logger.info(
+        f"There are {len(primary_keys)} compounds with KEGG identifiers that are "
+        f"missing an InChI string."
+    )
+    grouped_df = df.groupby("id", sort=False)
+    serializer = CompoundSerializer(
+        biology_qualifiers=BiologyQualifier.get_map(session),
+        namespaces=Namespace.get_map(session),
+    )
+    reports = []
+    with tqdm(total=len(primary_keys), desc="Compound") as pbar:
+        for index in range(0, len(primary_keys), batch_size):
+            mappings = []
+            batch = primary_keys[index : index + batch_size]
+            for key in batch:
+                sub = grouped_df.get_group(key)
+                inchis = {
+                    inchi
+                    for kegg_id in sub["identifier"]
+                    if (inchi := id2inchi.get(kegg_id, None))
+                }
+                if not inchis:
+                    continue
+                # We create information for detailed conflicts here.
+                conflict = InChIConflict(
+                    candidate_compound=serializer.serialize(
+                        session.query(Compound)
+                        .options(selectinload(Compound.annotation))
+                        .options(selectinload(Compound.names))
+                        .filter(Compound.id == int(key))
+                        .one()
+                    ),
+                    kegg_inchis=list(inchis),
+                    existing_compounds=[],
+                )
+                for inchi in inchis:
+                    alternative = (
+                        session.query(Compound)
+                        .options(selectinload(Compound.annotation))
+                        .options(selectinload(Compound.names))
+                        .filter(Compound.inchi == inchi)
+                        .one_or_none()
+                    )
+                    if alternative:
+                        conflict.existing_compounds.append(
+                            serializer.serialize(alternative)
+                        )
+                # If the data is conflicting we do not try to resolve it but simply
+                # collect a report.
+                if len(conflict.existing_compounds) > 0 or len(inchis) > 1:
+                    reports.append(conflict)
+                    continue
+                inchi = inchis.pop()
+                mappings.append({"id": int(key), "inchi": inchi})
+            pbar.update(len(batch))
+    logger.info(f"There are {len(mappings)} potentially new InChIs from KEGG.")
+    inchi_hist = Counter((m["inchi"] for m in mappings))
+    updates = [m for m in mappings if inchi_hist[m["inchi"]] == 1]
+    session.bulk_update_mappings(Compound, updates)
+    session.commit()
+    logger.info(f"{len(updates)} additional InChI strings were added from KEGG.")
+    logger.info(f"There are {len(reports)} conflicts.")
+    if (num := len(mappings) - len(updates)) > 0:
+        logger.info(f"There are {num} additional KEGG identifier conflicts.")
+    return InChIConflictReport(__root__=reports)

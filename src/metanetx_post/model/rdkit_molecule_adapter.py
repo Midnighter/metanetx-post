@@ -18,22 +18,21 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Optional
 
 import rdkit.Chem as chem
 from rdkit.Chem import Descriptors, rdMolDescriptors, rdmolops
+from rdkit.Chem.inchi import InchiReadWriteError
 
 from .abstract_molecule_adapter import AbstractMoleculeAdapter
 
 
+logger = logging.getLogger(__name__)
+
+
 class RDKitMoleculeAdapter(AbstractMoleculeAdapter):
-    """
-    Define the Open Babel molecule adapter.
-
-    An adapter to a molecule class that can be instantiatied either using Open Babel,
-    RDKit, or ChemAxon.
-
-    """
+    """Define the RDKit molecule adapter."""
 
     def __init__(self, *, molecule: chem.rdkit.Mol, **kwargs):
         """"""
@@ -42,17 +41,32 @@ class RDKitMoleculeAdapter(AbstractMoleculeAdapter):
     @classmethod
     def from_mol_block(cls, mol: str) -> Optional[RDKitMoleculeAdapter]:
         """Return an RDKitMoleculeAdapter instance from an MDL MOL block."""
-        return RDKitMoleculeAdapter(molecule=chem.MolFromMolBlock(mol))
+        molecule = chem.MolFromMolBlock(mol)
+        if molecule:
+            return RDKitMoleculeAdapter(molecule=molecule)
+        else:
+            logger.error("Failed to generate an RDKit molecule from MDL MOL block.")
+            return
 
     @classmethod
     def from_inchi(cls, inchi: str) -> Optional[RDKitMoleculeAdapter]:
         """Return an RDKitMoleculeAdapter instance from an InChI string."""
-        return RDKitMoleculeAdapter(molecule=chem.MolFromInchi(inchi))
+        molecule = chem.MolFromInchi(inchi)
+        if molecule:
+            return RDKitMoleculeAdapter(molecule=molecule)
+        else:
+            logger.error("Failed to generate an RDKit molecule from InChI.")
+            return
 
     @classmethod
     def from_smiles(cls, smiles: str) -> Optional[RDKitMoleculeAdapter]:
         """Return an RDKitMoleculeAdapter instance from a SMILES string."""
-        return RDKitMoleculeAdapter(molecule=chem.MolFromSmiles(smiles))
+        molecule = chem.MolFromSmiles(smiles)
+        if molecule:
+            return RDKitMoleculeAdapter(molecule=molecule)
+        else:
+            logger.error("Failed to generate an RDKit molecule from SMILES.")
+            return
 
     def get_inchi(self) -> str:
         """Return an InChI representation of the molecule."""

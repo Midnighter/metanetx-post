@@ -13,11 +13,21 @@
 # limitations under the License.
 
 
-"""Provide data models."""
+"""Provide a compound command line interface (CLI)."""
 
 
-from .abstract_molecule_adapter import *
-from .bigg import *
-from .kegg import *
-from .seed import *
-from .inchi_conflict import *
+import click
+
+from .kegg import kegg
+from .structure import structures
+
+
+@click.group()
+@click.help_option("--help", "-h")
+def compounds():
+    """Subcommands for processing compounds."""
+    pass
+
+
+compounds.add_command(kegg)
+compounds.add_command(structures)

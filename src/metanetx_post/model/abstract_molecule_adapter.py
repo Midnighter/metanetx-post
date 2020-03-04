@@ -22,6 +22,9 @@ from abc import ABC, abstractmethod
 from typing import Any, Optional
 
 
+__all__ = ("AbstractMoleculeAdapter",)
+
+
 class AbstractMoleculeAdapter(ABC):
     """
     Define the abstract molecule adapter.

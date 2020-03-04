@@ -13,11 +13,7 @@
 # limitations under the License.
 
 
-"""Provide data models."""
+"""Provide a high-level API."""
 
 
-from .abstract_molecule_adapter import *
-from .bigg import *
 from .kegg import *
-from .seed import *
-from .inchi_conflict import *

@@ -58,7 +58,7 @@ class OpenBabelMoleculeAdapter(AbstractMoleculeAdapter):
                 "Failed to generate an Open Babel molecule from MDL MOL block."
             )
             logger.debug(mol, exc_info=error)
-            return None
+            return
 
     @classmethod
     def from_inchi(cls, inchi: str) -> Optional[OpenBabelMoleculeAdapter]:
@@ -68,7 +68,7 @@ class OpenBabelMoleculeAdapter(AbstractMoleculeAdapter):
         except IOError as error:
             logger.error("Failed to generate an Open Babel molecule from InChI.")
             logger.debug(inchi, exc_info=error)
-            return None
+            return
 
     @classmethod
     def from_smiles(cls, smiles: str) -> Optional[OpenBabelMoleculeAdapter]:
@@ -78,7 +78,7 @@ class OpenBabelMoleculeAdapter(AbstractMoleculeAdapter):
         except IOError as error:
             logger.error("Failed to generate an Open Babel molecule from SMILES.")
             logger.debug(smiles, exc_info=error)
-            return None
+            return
 
     def get_inchi(self) -> str:
         """Return an InChI representation of the molecule."""
