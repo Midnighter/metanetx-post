@@ -3,7 +3,6 @@ language: python
 os:
 - linux
 python:
-- "3.7"
 - "3.8"
 
 git:
@@ -36,8 +35,9 @@ after_success:
 jobs:
   fast_finish: true
   include:
+  - stage: test
   - stage: deploy
-    python: "3.7"
+    python: "3.8"
     install:
     - pip install --upgrade setuptools wheel
     script: skip
