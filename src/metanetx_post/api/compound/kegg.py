@@ -196,6 +196,7 @@ def load(
     inchi_hist = Counter((m["inchi"] for m in mappings))
     updates = [m for m in mappings if inchi_hist[m["inchi"]] == 1]
     session.bulk_update_mappings(Compound, updates)
+    session.commit()
     logger.info(f"{len(updates)} additional InChI strings were added from KEGG.")
     duplicates = {}
     for mapping in mappings:
