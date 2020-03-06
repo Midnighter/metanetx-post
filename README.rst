@@ -42,48 +42,14 @@ MetaNetX Post-Processing
 
 Enrich the information coming from MetaNetX from additional sources.
 
-Post Template-Instantiation Steps
-=================================
+Usage
+=====
 
-1. Start working with git.
+Please use the command line program help to explore use-cases.
 
-   .. code-block:: console
+.. code-block:: console
 
-       git init
-
-2. Check for an updated versioneer.
-
-   .. code-block:: console
-
-       pip install versioneer
-       versioneer install
-
-   You probably have to remove the mess in ``src/metanetx_post/__init__.py``.
-
-3. Commit all the files.
-
-   .. code-block:: console
-
-       git add .
-       git commit
-
-4. Create a repository on `GitHub <https://github.com/>`_ if you haven't done
-   so yet and link it to `Travis CI <https://travis-ci.org/>`_.
-5. Browse through the architecture decision records (``docs/adr``) if you want
-   to understand details of the package design.
-6. Remove this section from the readme and describe what your package is all
-   about.
-7. When you're ready to make a release, perform the following steps.
-
-   1. On `Travis CI <https://travis-ci.org/>`_ set the secure environment
-      variables ``PYPI_USERNAME``, ``PYPI_PASSWORD``, and ``GITHUB_TOKEN``.
-   2. Tag your latest commit with the desired version and let Travis handle
-      the release.
-
-      .. code-block:: console
-
-          git tag 0.1.0
-          git push origin 0.1.0
+    mnx-post --help
 
 Install
 =======
