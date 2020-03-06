@@ -161,22 +161,3 @@ def load(db_uri: str, filename: click.Path, report: click.Path):
         session.close()
     with Path(report).open("w") as handle:
         handle.write(conflicts.json())
-
-
-@kegg.command()
-@click.help_option("--help", "-h")
-@click.argument("db-uri", metavar="<URI>")
-def add_information(db_uri: str,):
-    """
-    Add any missing structural compound information.
-
-    \b
-    URI is a string interpreted as an rfc1738 compatible database URI.
-
-    """
-    # We import within the function due to the openbabel requirement.
-    from ..etl.compound import add_missing_information
-
-    engine = create_engine(db_uri)
-    session = Session(bind=engine)
-    add_missing_information(session)
