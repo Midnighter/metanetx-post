@@ -195,9 +195,20 @@ def load(
     inchi_hist = Counter((m["inchi"] for m in mappings))
     updates = [m for m in mappings if inchi_hist[m["inchi"]] == 1]
     session.bulk_update_mappings(Compound, updates)
-    session.commit()
     logger.info(f"{len(updates)} additional InChI strings were added from KEGG.")
+    duplicates = {}
+    for mapping in mappings:
+        inchi = mapping["inchi"]
+        if inchi_hist[inchi] > 1:
+            duplicates.setdefault(inchi, []).append(
+                serializer.serialize(
+                    session.query(Compound)
+                    .options(selectinload(Compound.annotation))
+                    .options(selectinload(Compound.names))
+                    .filter(Compound.id == mapping["id"])
+                    .one()
+                )
+            )
+    logger.info(f"There are {len(duplicates)} InChIs with duplicates in KEGG.")
     logger.info(f"There are {len(reports)} conflicts.")
-    if (num := len(mappings) - len(updates)) > 0:
-        logger.info(f"There are {num} additional KEGG identifier conflicts.")
-    return InChIConflictReport(__root__=reports)
+    return InChIConflictReport(conflicts=reports, duplicates=duplicates)

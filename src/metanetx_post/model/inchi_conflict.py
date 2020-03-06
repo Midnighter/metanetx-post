@@ -16,7 +16,7 @@
 """Provide a compound conflict data model."""
 
 
-from typing import List
+from typing import Dict, List
 
 from cobra_component_models.io import CompoundModel
 from pydantic import BaseModel
@@ -40,4 +40,5 @@ class InChIConflict(BaseModel):
 class InChIConflictReport(BaseModel):
     """Define a collection of InChI-based compound conflicts."""
 
-    __root__: List[InChIConflict]
+    conflicts: List[InChIConflict]
+    duplicates: Dict[str, List[CompoundModel]]
