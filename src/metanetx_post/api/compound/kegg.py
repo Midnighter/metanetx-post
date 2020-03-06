@@ -188,6 +188,7 @@ def load(
                 if len(conflict.existing_compounds) > 0 or len(inchis) > 1:
                     reports.append(conflict)
                     continue
+                # We are certain here that `inchis` is a set with one element.
                 inchi = inchis.pop()
                 mappings.append({"id": int(key), "inchi": inchi})
             pbar.update(len(batch))
