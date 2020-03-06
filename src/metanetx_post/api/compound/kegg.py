@@ -145,7 +145,7 @@ def load(
         biology_qualifiers=BiologyQualifier.get_map(session),
         namespaces=Namespace.get_map(session),
     )
-    reports = []
+    conflicts = []
     with tqdm(total=len(primary_keys), desc="Compound") as pbar:
         for index in range(0, len(primary_keys), batch_size):
             mappings = []
@@ -186,7 +186,7 @@ def load(
                 # If the data is conflicting we do not try to resolve it but simply
                 # collect a report.
                 if len(conflict.existing_compounds) > 0 or len(inchis) > 1:
-                    reports.append(conflict)
+                    conflicts.append(conflict)
                     continue
                 # We are certain here that `inchis` is a set with one element.
                 inchi = inchis.pop()
@@ -211,5 +211,5 @@ def load(
                 )
             )
     logger.info(f"There are {len(duplicates)} InChIs with duplicates in KEGG.")
-    logger.info(f"There are {len(reports)} conflicts.")
-    return InChIConflictReport(conflicts=reports, duplicates=duplicates)
+    logger.info(f"There are {len(conflicts)} conflicts.")
+    return InChIConflictReport(conflicts=conflicts, duplicates=duplicates)
