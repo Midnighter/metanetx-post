@@ -49,11 +49,11 @@ def structures():
     show_default=True,
     help="The chem-informatics library to use for computing compound information.",
 )
-def load(
+def etl(
     db_uri: str, backend: str,
 ):
     """
-    Load any missing structural compound information.
+    Try to augment any missing structural compound information.
 
     \b
     URI is a string interpreted as an rfc1738 compatible database URI.
