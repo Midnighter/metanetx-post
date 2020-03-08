@@ -43,7 +43,6 @@ def kegg():
 
 @kegg.command()
 @click.help_option("--help", "-h")
-@click.argument("db-uri", metavar="<URI>")
 @click.option(
     "--filename",
     "-f",
@@ -52,12 +51,10 @@ def kegg():
     show_default=True,
     help="The output path for the KEGG reactions JSON response.",
 )
-def extract(db_uri: str, filename: click.Path):
+def extract(filename: click.Path):
     """Fetch all KEGG reaction descriptions."""
-    engine = create_engine(db_uri)
-    session = Session(bind=engine)
     logger.info("Downloading KEGG reactions.")
-    result = kegg_api.extract(session)
+    result = kegg_api.extract()
     result.to_json(filename, orient="records")
 
 

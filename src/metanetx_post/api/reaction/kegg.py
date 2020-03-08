@@ -30,7 +30,12 @@ from cobra_component_models.orm import (
 from sqlalchemy.orm import sessionmaker
 from tqdm import tqdm
 
-from ...etl import KEGGReactionNameParser, fetch_kegg_resources, reaction_fetcher
+from ...etl import (
+    KEGGReactionNameParser,
+    fetch_kegg_reaction_list,
+    fetch_kegg_resources,
+    reaction_fetcher,
+)
 from ...model import KEGGResponsesModel
 from ..helpers import summarize_responses
 
@@ -44,30 +49,31 @@ logger = logging.getLogger(__name__)
 Session = sessionmaker()
 
 
-def extract(session: Session, url: str = "http://rest.kegg.jp/get/",) -> pd.DataFrame:
+def extract(url: str = "http://rest.kegg.jp/get/", prefix: str = "rn:") -> pd.DataFrame:
     """
     Fetch all KEGG reaction descriptions.
 
     Parameters
     ----------
-    session : sqlalchemy.orm.session.Session
-        An active session in order to communicate with a SQL database.
     url : str, optional
         The URL to query for the KEGG reactions.
+    prefix : str, optional
+        The KEGG reaction prefix (default 'rn:').
 
     """
-    # Fetch all reactions from the database that have KEGG identifiers.
-    query = (
-        session.query(Reaction.id, ReactionAnnotation.identifier)
-        .select_from(Reaction)
-        .join(ReactionAnnotation)
-        .join(Namespace)
-        .filter(Namespace.prefix == "kegg.reaction")
+    loop = asyncio.get_event_loop()
+    # Fetch a list of all KEGG reaction identifiers.
+    reactions = loop.run_until_complete(fetch_kegg_reaction_list())
+    df = pd.read_csv(
+        reactions, sep="\t", header=None, index_col=False, names=["id", "description"]
     )
-    df = pd.read_sql_query(query.statement, session.bind)
-    return asyncio.run(
-        fetch_kegg_resources(df["identifier"].unique(), reaction_fetcher, url)
+    # We strip the prefix from the identifiers and use only unique occurrences.
+    identifiers = df["id"].str[len(prefix) :].unique()
+    data = loop.run_until_complete(
+        fetch_kegg_resources(identifiers, reaction_fetcher, url)
     )
+    loop.close()
+    return data
 
 
 def transform(response: str) -> Dict[str, Set[str]]:
