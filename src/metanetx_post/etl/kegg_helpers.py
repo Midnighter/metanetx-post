@@ -19,6 +19,7 @@
 import asyncio
 import logging
 import time
+from io import StringIO
 from math import ceil
 from typing import Any, Callable, Collection, Coroutine, Tuple
 
@@ -28,13 +29,30 @@ from sqlalchemy.orm import sessionmaker
 from tqdm import tqdm
 
 
-__all__ = ("fetch_kegg_resources",)
+__all__ = (
+    "fetch_kegg_list",
+    "fetch_kegg_resources",
+)
 
 
 logger = logging.getLogger(__name__)
 
 
 Session = sessionmaker()
+
+
+async def fetch_kegg_list(
+    database: str, url: str = "http://rest.kegg.jp/list",
+) -> StringIO:
+    """Fetch the tabular overview of a KEGG database."""
+    text = StringIO()
+    async with httpx.AsyncClient() as client:
+        async with client.stream("GET", f"{url}/{database}") as response:
+            async for chunk in response.aiter_text():
+                text.write(chunk)
+    # We set cursor to beginning such that the buffer can be read like a file.
+    text.seek(0)
+    return text
 
 
 async def fetch_kegg_resources(

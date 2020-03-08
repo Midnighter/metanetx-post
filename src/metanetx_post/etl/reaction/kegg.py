@@ -16,28 +16,13 @@
 """Extract, transform, and load KEGG reaction information."""
 
 
-from io import StringIO
 from typing import Any, Coroutine, Optional, Set
 
 import httpx
 import pyparsing as pp
 
 
-__all__ = ("fetch_kegg_reaction_list", "reaction_fetcher", "KEGGReactionNameParser")
-
-
-async def fetch_kegg_reaction_list(
-    url: str = "http://rest.kegg.jp/list/reaction",
-) -> StringIO:
-    """"""
-    text = StringIO()
-    async with httpx.AsyncClient() as client:
-        async with client.stream("GET", url) as response:
-            async for chunk in response.aiter_text():
-                text.write(chunk)
-    # We set cursor to beginning such that the buffer can be read like a file.
-    text.seek(0)
-    return text
+__all__ = ("reaction_fetcher", "KEGGReactionNameParser")
 
 
 def reaction_fetcher(
