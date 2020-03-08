@@ -44,7 +44,6 @@ def kegg():
 
 @kegg.command()
 @click.help_option("--help", "-h")
-@click.argument("db-uri", metavar="<URI>")
 @click.option(
     "--filename",
     "-f",
@@ -53,18 +52,10 @@ def kegg():
     show_default=True,
     help="The output path for the KEGG MDL MOL blocks.",
 )
-def extract(db_uri: str, filename: click.Path):
-    """
-    Fetch MDL MOL blocks from KEGG for compounds without InChI.
-
-    \b
-    URI is a string interpreted as an rfc1738 compatible database URI.
-
-    """
-    engine = create_engine(db_uri)
-    session = Session(bind=engine)
+def extract(filename: click.Path):
+    """Fetch MDL MOL blocks for all compounds in KEGG."""
     logger.info("Downloading KEGG MDL MOL blocks.")
-    result = kegg_api.extract(session)
+    result = kegg_api.extract()
     result.to_json(filename, orient="records")
 
 

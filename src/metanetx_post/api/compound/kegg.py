@@ -28,11 +28,11 @@ from cobra_component_models.orm import (
     Namespace,
 )
 from cobra_component_models.serializer import CompoundSerializer
-from pandas import DataFrame, read_sql_query
+from pandas import DataFrame, read_csv, read_sql_query
 from sqlalchemy.orm import selectinload, sessionmaker
 from tqdm import tqdm
 
-from ...etl import fetch_kegg_resources, kegg_mol_fetcher
+from ...etl import fetch_kegg_list, fetch_kegg_resources, kegg_mol_fetcher
 from ...model import (
     AbstractMoleculeAdapter,
     InChIConflict,
@@ -51,14 +51,12 @@ logger = logging.getLogger(__name__)
 Session = sessionmaker()
 
 
-def extract(session: Session, url: str = "http://rest.kegg.jp/get/",) -> DataFrame:
+def extract(url: str = "http://rest.kegg.jp/get/",) -> DataFrame:
     """
     Fetch MDL MOL blocks from KEGG for compounds without InChI.
 
     Parameters
     ----------
-    session : sqlalchemy.orm.session.Session
-        An active session in order to communicate with a SQL database.
     url : str, optional
         The URL to query for the KEGG compounds.
 
@@ -69,20 +67,25 @@ def extract(session: Session, url: str = "http://rest.kegg.jp/get/",) -> DataFra
         identifier.
 
     """
-    # Fetch all compounds from the database that have KEGG identifiers and are
-    # missing their InChI string.
-    query = (
-        session.query(Compound.id, CompoundAnnotation.identifier)
-        .select_from(Compound)
-        .join(CompoundAnnotation)
-        .join(Namespace)
-        .filter(Namespace.prefix.like("kegg%"))
-        .filter(Compound.inchi.is_(None))
+    loop = asyncio.get_event_loop()
+    identifiers = set()
+    for db, prefix in [
+        ("compound", "cpd:"),
+        ("glycan", "gl:"),
+        ("drug", "dr:"),
+        ("environ", "ev:"),
+    ]:
+        text = loop.run_until_complete(fetch_kegg_list(db))
+        df = read_csv(
+            text, sep="\t", header=None, index_col=False, names=["id", "description"]
+        )
+        # We strip the prefix from the identifiers and use only unique occurrences.
+        identifiers.update(df["id"].str[len(prefix) :].unique())
+    data = loop.run_until_complete(
+        fetch_kegg_resources(identifiers, kegg_mol_fetcher, url)
     )
-    df = read_sql_query(query.statement, session.bind)
-    return asyncio.run(
-        fetch_kegg_resources(df["identifier"].unique(), kegg_mol_fetcher, url)
-    )
+    loop.close()
+    return data
 
 
 def transform(
