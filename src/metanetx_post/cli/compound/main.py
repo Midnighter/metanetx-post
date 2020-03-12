@@ -19,6 +19,7 @@
 import click
 
 from .kegg import kegg
+from .pubchem import pubchem
 from .structure import structures
 
 
@@ -30,4 +31,5 @@ def compounds():
 
 
 compounds.add_command(kegg)
+compounds.add_command(pubchem)
 compounds.add_command(structures)

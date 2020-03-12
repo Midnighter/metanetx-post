@@ -13,19 +13,14 @@
 # limitations under the License.
 
 
-"""Populate compound information."""
+"""Provide compound extraction, transformation, and loading (ETL) functions."""
 
 
 import logging
-from typing import Any, Coroutine, Optional, Tuple
+from typing import Any, Coroutine
 
 import httpx
-from cobra_component_models.orm import Compound
-from sqlalchemy import or_
 from sqlalchemy.orm import sessionmaker
-from tqdm import tqdm
-
-from ..model import AbstractMoleculeAdapter
 
 
 __all__ = ("kegg_mol_fetcher",)
@@ -57,31 +52,3 @@ def kegg_mol_fetcher(
 
     """
     return client.get(f"{identifier}/mol")
-
-
-# def populate_additional_compounds(session, filename) -> None:
-#     """Populate the database with additional compounds."""
-#     additional_compound_df = pd.read_csv(filename)
-#     additional_compound_df[additional_compound_df.isnull()] = None
-#     name_registry = session.query(Registry).filter_by(namespace="synonyms").one()
-#     coco_registry = session.query(Registry).filter_by(namespace="coco").one()
-#     for row in tqdm(additional_compound_df.itertuples(index=False)):
-#         if session.query(exists().where(Compound.inchi == row.inchi)).scalar():
-#             continue
-#         logger.info(f"Adding non-MetaNetX compound: {row.name}")
-#         compound = Compound(
-#             mnx_id=row.mnx_id, inchi=row.inchi, inchi_key=inchi_to_inchi_key(row.inchi)
-#         )
-#         identifiers = []
-#         if row.coco_id:
-#             print(repr(row.coco_id))
-#             identifiers.append(
-#                 CompoundIdentifier(registry=coco_registry, accession=row.coco_id)
-#             )
-#         if row.name:
-#             identifiers.append(
-#                 CompoundIdentifier(registry=name_registry, accession=row.name)
-#             )
-#         compound.identifiers = identifiers
-#         session.add(compound)
-#     session.commit()

@@ -21,3 +21,4 @@ from .bigg import *
 from .kegg import *
 from .seed import *
 from .inchi_conflict import *
+from .pubchem import *
