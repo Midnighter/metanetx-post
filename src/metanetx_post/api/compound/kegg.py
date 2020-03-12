@@ -125,7 +125,20 @@ def transform(
 def load(
     session: Session, id2inchi: Dict[str, str], batch_size: int = 1000,
 ) -> InChIConflictReport:
-    """"""
+    """
+    Attempt to add InChI strings from KEGG to the database.
+
+    Parameters
+    ----------
+    session : sqlalchemy.orm.session.Session
+        An active session in order to communicate with a SQL database.
+    id2inchi : dict
+        A mapping from KEGG identifiers to InChI strings.
+    batch_size : int, optional
+        The size of batches to proces the data in (default 1000). This can optimize
+        the speed to interact with the database.
+
+    """
     # Fetch all compounds from the database that have KEGG identifiers and are
     # missing their InChI string.
     query = (

@@ -107,7 +107,8 @@ def load(session: Session, id2name: Dict[str, str], batch_size: int = 1000,) -> 
     id2name : dict
         A map of BiGG reaction identifiers to names.
     batch_size : int, optional
-        The size of batches to proces the data in.
+        The size of batches to proces the data in (default 1000). This can optimize
+        the speed to interact with the database.
 
     """
     # Fetch all reactions from the database that have BiGG identifiers.
