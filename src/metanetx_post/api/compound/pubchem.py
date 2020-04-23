@@ -185,7 +185,7 @@ def load(
         )
         db_compound.names.append(
             CompoundName(
-                namespace=pubchem_ns, name=compound.iupac_name, is_preffered=True
+                namespace=pubchem_ns, name=compound.iupac_name, is_preferred=True
             )
         )
         db_compound.names.extend(
