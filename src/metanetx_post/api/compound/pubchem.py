@@ -183,6 +183,11 @@ def load(
                 biology_qualifier=bq_is,
             )
         )
+        db_compound.names.append(
+            CompoundName(
+                namespace=pubchem_ns, name=compound.iupac_name, is_preffered=True
+            )
+        )
         db_compound.names.extend(
             (CompoundName(namespace=pubchem_ns, name=n) for n in compound.synonyms)
         )
