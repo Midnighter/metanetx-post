@@ -27,7 +27,7 @@ from cobra_component_models.orm import (
     CompoundAnnotation,
     Namespace,
 )
-from cobra_component_models.serializer import CompoundSerializer
+from cobra_component_models.builder import CompoundBuilder
 from pandas import DataFrame, read_csv, read_sql_query
 from sqlalchemy.orm import selectinload, sessionmaker
 from tqdm import tqdm
@@ -157,7 +157,7 @@ def load(
         f"missing an InChI string."
     )
     grouped_df = df.groupby("id", sort=False)
-    serializer = CompoundSerializer(
+    builder = CompoundBuilder(
         biology_qualifiers=BiologyQualifier.get_map(session),
         namespaces=Namespace.get_map(session),
     )
@@ -177,7 +177,7 @@ def load(
                     continue
                 # We create information for detailed conflicts here.
                 conflict = InChIConflict(
-                    candidate_compound=serializer.serialize(
+                    candidate_compound=builder.build_io(
                         session.query(Compound)
                         .options(selectinload(Compound.annotation))
                         .options(selectinload(Compound.names))
@@ -197,7 +197,7 @@ def load(
                     )
                     if alternative:
                         conflict.existing_compounds.append(
-                            serializer.serialize(alternative)
+                            builder.serialize(alternative)
                         )
                 # If the data is conflicting we do not try to resolve it but simply
                 # collect a report.
@@ -219,7 +219,7 @@ def load(
         inchi = mapping["inchi"]
         if inchi_hist[inchi] > 1:
             duplicates.setdefault(inchi, []).append(
-                serializer.serialize(
+                builder.serialize(
                     session.query(Compound)
                     .options(selectinload(Compound.annotation))
                     .options(selectinload(Compound.names))
