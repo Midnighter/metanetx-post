@@ -5,6 +5,10 @@ History
 Next Release
 ------------
 
+0.5.0 (2020-04-26)
+------------------
+* Adjust to updated dependencies.
+
 0.4.0 (2020-04-23)
 ------------------
 * Use new preferred name field on compound.
