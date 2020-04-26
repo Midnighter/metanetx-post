@@ -21,13 +21,13 @@ import logging
 from collections import Counter
 from typing import Dict, Type
 
+from cobra_component_models.builder import CompoundBuilder
 from cobra_component_models.orm import (
     BiologyQualifier,
     Compound,
     CompoundAnnotation,
     Namespace,
 )
-from cobra_component_models.builder import CompoundBuilder
 from pandas import DataFrame, read_csv, read_sql_query
 from sqlalchemy.orm import selectinload, sessionmaker
 from tqdm import tqdm
