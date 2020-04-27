@@ -5,6 +5,10 @@ History
 Next Release
 ------------
 
+0.5.1 (2020-04-27)
+------------------
+* Correctly use the new API of cobra-component-models.
+
 0.5.0 (2020-04-26)
 ------------------
 * Adjust to updated dependencies.
