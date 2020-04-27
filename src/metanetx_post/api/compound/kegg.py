@@ -197,7 +197,7 @@ def load(
                     )
                     if alternative:
                         conflict.existing_compounds.append(
-                            builder.serialize(alternative)
+                            builder.build_io(alternative)
                         )
                 # If the data is conflicting we do not try to resolve it but simply
                 # collect a report.
@@ -219,7 +219,7 @@ def load(
         inchi = mapping["inchi"]
         if inchi_hist[inchi] > 1:
             duplicates.setdefault(inchi, []).append(
-                builder.serialize(
+                builder.build_io(
                     session.query(Compound)
                     .options(selectinload(Compound.annotation))
                     .options(selectinload(Compound.names))
