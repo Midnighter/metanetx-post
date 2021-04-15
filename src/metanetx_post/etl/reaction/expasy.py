@@ -62,7 +62,7 @@ async def fetch_expasy_rdf(
          The desired timeout in seconds for FTP connections (default 5 s).
 
     """
-    async with aioftp.ClientSession(
+    async with aioftp.Client.context(
         host, password=email, socket_timeout=timeout, path_timeout=timeout
     ) as client:
         await client.change_directory(directory)
