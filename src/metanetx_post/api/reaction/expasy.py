@@ -109,9 +109,10 @@ def load(
         session.query(Namespace).filter(Namespace.prefix == "ec-code").one()
     )
     query = (
-        session.query(Reaction.id, ReactionAnnotation.identifier)
+        session.query(Reaction.id, ReactionAnnotation.identifier, ReactionName.name)
         .select_from(Reaction)
         .join(ReactionAnnotation)
+        .join(ReactionName)
         .join(Namespace)
         .filter(Namespace.id == ec_code_ns.id)
     )
@@ -120,19 +121,21 @@ def load(
     # data by reaction index so that we can later make the names unique.
     grouped = df.groupby("id", as_index=False, sort=False)
     reaction_ids = df["id"].unique()
-    with tqdm(total=len(reaction_ids), desc="Reaction") as pbar:
+    with tqdm(total=len(reaction_ids), desc="Reaction", unit_scale=True) as pbar:
         for index in range(0, len(reaction_ids), batch_size):
             mappings = []
             batch = reaction_ids[index : index + batch_size]
             for rxn_id in batch:
                 sub = grouped.get_group(rxn_id)
                 # Check if any EC-code is obsolete and has a replacement.
-                ec_codes = [obsoletes.get(e, e) for e in sub["identifier"]]
+                ec_codes = [obsoletes.get(e, e) for e in sub["identifier"].unique()]
                 # Create unique names per reaction.
                 names = set()
                 for code in ec_codes:
                     if labels := id2names.get(code, None):
                         names.update(labels)
+                # Remove existing names.
+                names.difference_update(sub["name"].unique())
                 # Apparently, `numpy.int` ends up as a BLOB in the database. We
                 # convert to native `int` here.
                 mappings.extend(

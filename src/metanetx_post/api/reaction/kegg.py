@@ -127,9 +127,10 @@ def load(
         session.query(Namespace).filter(Namespace.prefix == "kegg.reaction").one()
     )
     query = (
-        session.query(Reaction.id, ReactionAnnotation.identifier)
+        session.query(Reaction.id, ReactionAnnotation.identifier, ReactionName.name)
         .select_from(Reaction)
         .join(ReactionAnnotation)
+        .join(ReactionName)
         .join(Namespace)
         .filter(Namespace.id == kegg_ns.id)
     )
@@ -138,7 +139,7 @@ def load(
     # data by reaction index so that we can later make the names unique.
     grouped = df.groupby("id", as_index=False, sort=False)
     reaction_ids = df["id"].unique()
-    with tqdm(total=len(reaction_ids), desc="Reaction") as pbar:
+    with tqdm(total=len(reaction_ids), desc="Reaction", unit_scale=True) as pbar:
         for index in range(0, len(reaction_ids), batch_size):
             mappings = []
             batch = reaction_ids[index : index + batch_size]
@@ -146,9 +147,11 @@ def load(
                 sub = grouped.get_group(rxn_id)
                 # Create unique names per reaction.
                 names = set()
-                for seed_id in sub["identifier"]:
+                for seed_id in sub["identifier"].unique():
                     if labels := id2names.get(seed_id, None):
                         names.update(labels)
+                # Remove existing names.
+                names.difference_update(sub["name"].unique())
                 # Apparently, `numpy.int` ends up as a BLOB in the database. We
                 # convert to native `int` here.
                 mappings.extend(

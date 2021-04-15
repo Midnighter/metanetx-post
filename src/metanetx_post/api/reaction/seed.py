@@ -134,7 +134,7 @@ def load(
     # data by reaction index so that we can later make the names unique.
     grouped = df.groupby("id", as_index=False, sort=False)
     reaction_ids = df["id"].unique()
-    with tqdm(total=len(reaction_ids), desc="Reaction") as pbar:
+    with tqdm(total=len(reaction_ids), desc="Reaction", unit_scale=True) as pbar:
         for index in range(0, len(reaction_ids), batch_size):
             mappings = []
             batch = reaction_ids[index : index + batch_size]
