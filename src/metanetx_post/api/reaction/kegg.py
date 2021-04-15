@@ -49,7 +49,10 @@ logger = logging.getLogger(__name__)
 Session = sessionmaker()
 
 
-def extract(url: str = "http://rest.kegg.jp/get/") -> pd.DataFrame:
+def extract(
+    url: str = "http://rest.kegg.jp/get/",
+    requests_per_second: int = 10,
+) -> pd.DataFrame:
     """
     Fetch all KEGG reaction descriptions.
 
@@ -57,6 +60,9 @@ def extract(url: str = "http://rest.kegg.jp/get/") -> pd.DataFrame:
     ----------
     url : str, optional
         The URL to query for the KEGG reactions.
+    requests_per_second : int, optional
+        The desired requests per second to make. The default of 10 is the desired limit
+        by KEGG.
 
     """
     loop = asyncio.get_event_loop()

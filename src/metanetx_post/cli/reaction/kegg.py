@@ -51,10 +51,18 @@ def kegg():
     show_default=True,
     help="The output path for the KEGG reactions JSON response.",
 )
-def extract(filename: click.Path):
+@click.option(
+    "--rate-limit",
+    type=int,
+    default=10,
+    show_default=True,
+    help="The requests per second to make. The default of 10 is the desired limit by "
+    "KEGG.",
+)
+def extract(filename: click.Path, rate_limit: int):
     """Fetch all KEGG reaction descriptions."""
     logger.info("Downloading KEGG reactions.")
-    result = kegg_api.extract()
+    result = kegg_api.extract(requests_per_second=rate_limit)
     result.to_json(filename, orient="records")
 
 
