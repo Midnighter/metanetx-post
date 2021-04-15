@@ -168,7 +168,7 @@ def load(
         pubchem_ns = Namespace(**model.dict())
         session.add(pubchem_ns)
         session.commit()
-    for compound in tqdm(compounds, desc="Compound"):
+    for compound in tqdm(compounds, desc="Compound", unit_scale=True):
         if session.query(exists().where(Compound.inchi == compound.inchi)).scalar():
             logger.warning(
                 f"InChI for pubchem.compound:{compound.cid} already exists in the "
@@ -189,7 +189,10 @@ def load(
             )
         )
         db_compound.names.extend(
-            (CompoundName(namespace=pubchem_ns, name=n) for n in compound.synonyms)
+            (
+                CompoundName(namespace=pubchem_ns, name=n)
+                for n in set(compound.synonyms).difference([compound.iupac_name])
+            )
         )
         session.add(db_compound)
         session.commit()
