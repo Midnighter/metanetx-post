@@ -42,7 +42,8 @@ Session = sessionmaker()
 
 
 async def fetch_kegg_list(
-    database: str, url: str = "http://rest.kegg.jp/list",
+    database: str,
+    url: str = "http://rest.kegg.jp/list",
 ) -> StringIO:
     """Fetch the tabular overview of a KEGG database."""
     text = StringIO()
@@ -105,8 +106,11 @@ async def fetch_kegg_resources(
     with tqdm(total=len(identifiers), desc="Fetch Resource") as pbar:
         async with httpx.AsyncClient(
             base_url=url,
-            pool_limits=httpx.PoolLimits(hard_limit=requests_per_second),
-            timeout=httpx.Timeout(pool_timeout=None),
+            pool_limits=httpx.Limits(
+                max_keepalive_connections=requests_per_second,
+                max_connections=requests_per_second,
+            ),
+            timeout=None,
         ) as client:
             while len(identifiers) > 0:
                 tasks = identifiers[-requests_per_second:]
