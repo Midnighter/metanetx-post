@@ -50,7 +50,8 @@ def structures():
     help="The chem-informatics library to use for computing compound information.",
 )
 def etl(
-    db_uri: str, backend: str,
+    db_uri: str,
+    backend: str,
 ):
     """
     Try to augment any missing structural compound information.

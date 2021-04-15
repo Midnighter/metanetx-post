@@ -22,11 +22,7 @@ from collections import Counter
 from typing import Dict, Type
 
 from cobra_component_models.builder import CompoundBuilder
-from cobra_component_models.orm import (
-    Compound,
-    CompoundAnnotation,
-    Namespace,
-)
+from cobra_component_models.orm import Compound, CompoundAnnotation, Namespace
 from pandas import DataFrame, read_csv, read_sql_query
 from sqlalchemy.orm import selectinload, sessionmaker
 from tqdm import tqdm
@@ -50,7 +46,9 @@ logger = logging.getLogger(__name__)
 Session = sessionmaker()
 
 
-def extract(url: str = "http://rest.kegg.jp/get/",) -> DataFrame:
+def extract(
+    url: str = "http://rest.kegg.jp/get/",
+) -> DataFrame:
     """
     Fetch MDL MOL blocks from KEGG for compounds without InChI.
 
@@ -122,7 +120,9 @@ def transform(
 
 
 def load(
-    session: Session, id2inchi: Dict[str, str], batch_size: int = 1000,
+    session: Session,
+    id2inchi: Dict[str, str],
+    batch_size: int = 1000,
 ) -> InChIConflictReport:
     """
     Attempt to add InChI strings from KEGG to the database.
@@ -156,9 +156,7 @@ def load(
         f"missing an InChI string."
     )
     grouped_df = df.groupby("id", sort=False)
-    builder = CompoundBuilder(
-        namespaces=Namespace.get_map(session)
-    )
+    builder = CompoundBuilder(namespaces=Namespace.get_map(session))
     conflicts = []
     with tqdm(total=len(primary_keys), desc="Compound") as pbar:
         for index in range(0, len(primary_keys), batch_size):

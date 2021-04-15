@@ -42,7 +42,9 @@ logger = logging.getLogger(__name__)
 Session = sessionmaker()
 
 
-def extract(url: str = "http://bigg.ucsd.edu/api/v2/universal/reactions",) -> str:
+def extract(
+    url: str = "http://bigg.ucsd.edu/api/v2/universal/reactions",
+) -> str:
     """
     Fetch all BiGG universal reactions as JSON.
 
@@ -96,7 +98,11 @@ def transform(response: str) -> Dict[str, str]:
     return {r.bigg_id: r.name for r in data.results if r.name}
 
 
-def load(session: Session, id2name: Dict[str, str], batch_size: int = 1000,) -> None:
+def load(
+    session: Session,
+    id2name: Dict[str, str],
+    batch_size: int = 1000,
+) -> None:
     """
     Load BiGG universal reaction names into a database.
 
@@ -112,9 +118,9 @@ def load(session: Session, id2name: Dict[str, str], batch_size: int = 1000,) -> 
 
     """
     # Fetch all reactions from the database that have BiGG identifiers.
-    bigg_ns: Namespace = session.query(Namespace).filter(
-        Namespace.prefix == "bigg.reaction"
-    ).one()
+    bigg_ns: Namespace = (
+        session.query(Namespace).filter(Namespace.prefix == "bigg.reaction").one()
+    )
     query = (
         session.query(Reaction.id, ReactionAnnotation.identifier)
         .select_from(Reaction)
@@ -138,7 +144,11 @@ def load(session: Session, id2name: Dict[str, str], batch_size: int = 1000,) -> 
                 # Apparently, `numpy.int` ends up as a BLOB in the database. We
                 # convert to native `int` here.
                 mappings.extend(
-                    {"reaction_id": int(rxn_id), "namespace_id": bigg_ns.id, "name": n,}
+                    {
+                        "reaction_id": int(rxn_id),
+                        "namespace_id": bigg_ns.id,
+                        "name": n,
+                    }
                     for n in names
                 )
             session.bulk_insert_mappings(ReactionName, mappings)

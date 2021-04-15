@@ -101,7 +101,9 @@ def transform(response: str) -> Dict[str, Set[str]]:
 
 
 def load(
-    session: Session, id2names: Dict[str, Collection[str]], batch_size: int = 1000,
+    session: Session,
+    id2names: Dict[str, Collection[str]],
+    batch_size: int = 1000,
 ) -> None:
     """
     Load SEED reaction names into a database.
@@ -117,9 +119,9 @@ def load(
 
     """
     # Fetch all reactions from the database that have SEED identifiers.
-    seed_ns: Namespace = session.query(Namespace).filter(
-        Namespace.prefix == "seed.reaction"
-    ).one()
+    seed_ns: Namespace = (
+        session.query(Namespace).filter(Namespace.prefix == "seed.reaction").one()
+    )
     query = (
         session.query(Reaction.id, ReactionAnnotation.identifier)
         .select_from(Reaction)
@@ -146,7 +148,11 @@ def load(
                 # Apparently, `numpy.int` ends up as a BLOB in the database. We
                 # convert to native `int` here.
                 mappings.extend(
-                    {"reaction_id": int(rxn_id), "namespace_id": seed_ns.id, "name": n,}
+                    {
+                        "reaction_id": int(rxn_id),
+                        "namespace_id": seed_ns.id,
+                        "name": n,
+                    }
                     for n in names
                 )
             session.bulk_insert_mappings(ReactionName, mappings)

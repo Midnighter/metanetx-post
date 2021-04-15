@@ -60,7 +60,9 @@ def extract(email: str, filename: Path) -> None:
     asyncio.run(fetch_expasy_rdf(email, filename), debug=with_debug)
 
 
-def transform(filename: Path,) -> Tuple[Dict[str, Set[str]], Dict[str, str]]:
+def transform(
+    filename: Path,
+) -> Tuple[Dict[str, Set[str]], Dict[str, str]]:
     """
     Collect ExPASy EC-code descriptions.
 
@@ -103,9 +105,9 @@ def load(
 
     """
     # Fetch all reactions from the database that have EC-codes.
-    ec_code_ns: Namespace = session.query(Namespace).filter(
-        Namespace.prefix == "ec-code"
-    ).one()
+    ec_code_ns: Namespace = (
+        session.query(Namespace).filter(Namespace.prefix == "ec-code").one()
+    )
     query = (
         session.query(Reaction.id, ReactionAnnotation.identifier)
         .select_from(Reaction)

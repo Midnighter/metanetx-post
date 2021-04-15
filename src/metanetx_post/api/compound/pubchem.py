@@ -48,7 +48,8 @@ Session = sessionmaker()
 
 
 def extract(
-    identifiers: List[str], url: str = "https://pubchem.ncbi.nlm.nih.gov/rest/pug",
+    identifiers: List[str],
+    url: str = "https://pubchem.ncbi.nlm.nih.gov/rest/pug",
 ) -> Tuple[str, str]:
     """
     Fetch compound information from PubChem.
@@ -79,7 +80,9 @@ def extract(
     )
     property_response.raise_for_status()
     synonyms_response = httpx.post(
-        f"{url}/compound/cid/synonyms/", headers=headers, data=data,
+        f"{url}/compound/cid/synonyms/",
+        headers=headers,
+        data=data,
     )
     synonyms_response.raise_for_status()
     return property_response.text, synonyms_response.text
