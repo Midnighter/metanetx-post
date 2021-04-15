@@ -21,7 +21,6 @@ from typing import List, Tuple
 
 import httpx
 from cobra_component_models.orm import (
-    BiologyQualifier,
     Compound,
     CompoundAnnotation,
     CompoundName,
@@ -166,7 +165,6 @@ def load(
         pubchem_ns = Namespace(**model.dict())
         session.add(pubchem_ns)
         session.commit()
-    bq_is = BiologyQualifier.get_map(session)["is"]
     for compound in tqdm(compounds, desc="Compound"):
         if session.query(exists().where(Compound.inchi == compound.inchi)).scalar():
             logger.warning(
@@ -180,7 +178,6 @@ def load(
             CompoundAnnotation(
                 identifier=str(compound.cid),
                 namespace=pubchem_ns,
-                biology_qualifier=bq_is,
             )
         )
         db_compound.names.append(

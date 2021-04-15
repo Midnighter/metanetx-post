@@ -23,7 +23,6 @@ from typing import Dict, Type
 
 from cobra_component_models.builder import CompoundBuilder
 from cobra_component_models.orm import (
-    BiologyQualifier,
     Compound,
     CompoundAnnotation,
     Namespace,
@@ -158,8 +157,7 @@ def load(
     )
     grouped_df = df.groupby("id", sort=False)
     builder = CompoundBuilder(
-        biology_qualifiers=BiologyQualifier.get_map(session),
-        namespaces=Namespace.get_map(session),
+        namespaces=Namespace.get_map(session)
     )
     conflicts = []
     with tqdm(total=len(primary_keys), desc="Compound") as pbar:
