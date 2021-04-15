@@ -52,10 +52,18 @@ def kegg():
     show_default=True,
     help="The output path for the KEGG MDL MOL blocks.",
 )
-def extract(filename: click.Path):
+@click.option(
+    "--rate-limit",
+    type=int,
+    default=10,
+    show_default=True,
+    help="The requests per second to make. The default of 10 is the desired limit by "
+    "KEGG.",
+)
+def extract(filename: click.Path, rate_limit: int):
     """Fetch MDL MOL blocks for all compounds in KEGG."""
     logger.info("Downloading KEGG MDL MOL blocks.")
-    result = kegg_api.extract()
+    result = kegg_api.extract(requests_per_second=rate_limit)
     result.to_json(filename, orient="records")
 
 

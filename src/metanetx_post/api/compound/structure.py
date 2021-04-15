@@ -66,7 +66,10 @@ def augment_information(
     )
     num_compounds = query.count()
     for compound in tqdm(
-        query.yield_per(batch_size), total=num_compounds, desc="Compound"
+        query.yield_per(batch_size),
+        total=num_compounds,
+        desc="Compound",
+        unit_scale=True,
     ):  # type: Compound
         if compound.inchi:
             logger.debug(compound.inchi)

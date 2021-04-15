@@ -48,6 +48,7 @@ Session = sessionmaker()
 
 def extract(
     url: str = "http://rest.kegg.jp/get/",
+    requests_per_second: int = 10,
 ) -> DataFrame:
     """
     Fetch MDL MOL blocks from KEGG for compounds without InChI.
@@ -56,6 +57,9 @@ def extract(
     ----------
     url : str, optional
         The URL to query for the KEGG compounds.
+    requests_per_second : int, optional
+        The desired requests per second to make. The default of 10 is the desired limit
+        by KEGG.
 
     Returns
     -------
@@ -79,7 +83,9 @@ def extract(
         # We strip the prefix from the identifiers and use only unique occurrences.
         identifiers.update(df["id"].str[len(prefix) :].unique())
     data = loop.run_until_complete(
-        fetch_kegg_resources(identifiers, kegg_mol_fetcher, url)
+        fetch_kegg_resources(
+            identifiers, kegg_mol_fetcher, url, requests_per_second=requests_per_second
+        )
     )
     loop.close()
     return data
@@ -158,7 +164,7 @@ def load(
     grouped_df = df.groupby("id", sort=False)
     builder = CompoundBuilder(namespaces=Namespace.get_map(session))
     conflicts = []
-    with tqdm(total=len(primary_keys), desc="Compound") as pbar:
+    with tqdm(total=len(primary_keys), desc="Compound", unit_scale=True) as pbar:
         for index in range(0, len(primary_keys), batch_size):
             mappings = []
             batch = primary_keys[index : index + batch_size]
