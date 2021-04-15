@@ -123,9 +123,10 @@ def load(
         session.query(Namespace).filter(Namespace.prefix == "seed.reaction").one()
     )
     query = (
-        session.query(Reaction.id, ReactionAnnotation.identifier)
+        session.query(Reaction.id, ReactionAnnotation.identifier, ReactionName.name)
         .select_from(Reaction)
         .join(ReactionAnnotation)
+        .join(ReactionName)
         .join(Namespace)
         .filter(Namespace.id == seed_ns.id)
     )
@@ -142,9 +143,11 @@ def load(
                 sub = grouped.get_group(rxn_id)
                 # Create unique names per reaction.
                 names = set()
-                for seed_id in sub["identifier"]:
+                for seed_id in sub["identifier"].unique():
                     if labels := id2names.get(seed_id, None):
                         names.update(labels)
+                # Remove existing names.
+                names.difference_update(sub["name"].unique())
                 # Apparently, `numpy.int` ends up as a BLOB in the database. We
                 # convert to native `int` here.
                 mappings.extend(
