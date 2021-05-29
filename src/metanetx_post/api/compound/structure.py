@@ -73,6 +73,11 @@ def augment_information(
     ):  # type: Compound
         if compound.inchi:
             logger.debug(compound.inchi)
+            if "*" in compound.inchi:
+                logger.debug(
+                    "Refusing to convert unknown chemical groups to molecule."
+                )
+                continue
             molecule = molecule_adapter.from_inchi(compound.inchi)
             if not molecule:
                 continue
@@ -80,7 +85,7 @@ def augment_information(
             logger.debug(compound.smiles)
             if "*" in compound.smiles:
                 logger.debug(
-                    f"Refusing to convert unknown chemical groups to molecule."
+                    "Refusing to convert unknown chemical groups to molecule."
                 )
                 continue
             molecule = molecule_adapter.from_smiles(compound.smiles)
