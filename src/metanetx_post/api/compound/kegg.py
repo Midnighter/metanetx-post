@@ -100,7 +100,7 @@ def transform(
     Parameters
     ----------
     response : str
-        The JSON collection of KEGG API responses containing reaction descriptions.
+        The JSON collection of KEGG API responses containing MDL MOL blocks.
     molecule_adapter : AbstractMoleculeAdapter
 
     Returns
