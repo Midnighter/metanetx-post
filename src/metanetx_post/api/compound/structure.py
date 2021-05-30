@@ -73,7 +73,7 @@ def augment_information(
     ):  # type: Compound
         if compound.inchi:
             logger.debug(compound.inchi)
-            if "*" in compound.inchi:
+            if "*" in compound.inchi or "Zz" in compound.inchi:
                 logger.debug(
                     "Refusing to convert unknown chemical groups to molecule."
                 )
@@ -83,7 +83,7 @@ def augment_information(
                 continue
         elif compound.smiles:
             logger.debug(compound.smiles)
-            if "*" in compound.smiles:
+            if "*" in compound.smiles or "Zz" in compound.smiles:
                 logger.debug(
                     "Refusing to convert unknown chemical groups to molecule."
                 )
