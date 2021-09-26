@@ -5,6 +5,10 @@ History
 Next Release
 ------------
 
+4.2.0 (2021-09-26)
+------------------
+* Adjust to MetaNetX release 4.2.
+
 0.5.1 (2020-04-27)
 ------------------
 * Correctly use the new API of cobra-component-models.
